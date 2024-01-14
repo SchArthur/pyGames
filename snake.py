@@ -25,9 +25,15 @@ class jeu_snake:
                     self.running = False
 
             # fill the screen with a color to wipe away anything from last frame
-            self.fenetre.fill("purple")
+            self.fenetre.fill('#535353')
 
             # RENDER YOUR GAME HERE
+            score_obj = gui_text(72, (25, 25), self.fenetre)
+            score_obj.draw(str(serpent.score), 'black')
+
+            vitesse_obj = gui_text(38, (25, 135), self.fenetre)
+            vitesse_obj.draw("Speed/Vitesse : " + str(round(serpent.speed, 2)) + "x", 'black')
+
             serpent.move()
             if serpent.is_alive != True:
                 break
@@ -56,6 +62,7 @@ class snake:
     direction = 'up'
     direction_pressed = 'left'
     time = 0
+    score = 0
     is_alive = True
     snake_body = []
 
@@ -90,6 +97,7 @@ class snake:
         self.fruit.draw()
     
     def grow(self):
+        self.score += 1
         self.snake_eat.play()
         self.size += 1
         self.speed += 0.1
@@ -162,6 +170,16 @@ class fruit:
     def draw(self):
         self.fruit_rect = pygame.rect.Rect([self.pos, (tile_size -2, tile_size - 2)])
         pygame.draw.rect(self.screen, 'red', self.fruit_rect)
-      
+
+class gui_text:
+    font = "impact"
+    def __init__(self, size, pos, screen) -> None:
+        self.screen = screen
+        self.pos = pos
+        self.font = pygame.font.SysFont(self.font , size)
+
+    def draw(self, txt, color):
+        text_img = self.font.render(txt, True, color)
+        self.screen.blit(text_img, self.pos)
 
 jeu_snake(window_size)
