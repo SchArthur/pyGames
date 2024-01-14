@@ -28,16 +28,17 @@ class jeu_snake:
             self.fenetre.fill('#535353')
 
             # RENDER YOUR GAME HERE
+            if serpent.is_alive != True:
+                break
+            serpent.draw()
+            serpent.move()
             score_obj = gui_text(72, (25, 25), self.fenetre)
             score_obj.draw(str(serpent.score), 'black')
 
             vitesse_obj = gui_text(38, (25, 135), self.fenetre)
             vitesse_obj.draw("Speed/Vitesse : " + str(round(serpent.speed, 2)) + "x", 'black')
 
-            serpent.move()
-            if serpent.is_alive != True:
-                break
-            serpent.draw()
+            
 
             #inputs
             keys = pygame.key.get_pressed()
