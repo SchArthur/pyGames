@@ -2,14 +2,15 @@ import pygame
 import random
 
 #setup
-window_size = 300
+window_size = 1000
 tile_size = 50
-tile_range = (tile_size // 2, window_size - tile_size //2, tile_size)
 
 class jeu_snake:
 
     def __init__(self, taille_fenetre) -> None:
         pygame.init()
+        pygame.mixer.music.load("sounds/snake-music.mp3")
+        pygame.mixer.music.play()
         self.fenetre = pygame.display.set_mode([taille_fenetre] * 2)
         self.clock = pygame.time.Clock()
         self.running = True
@@ -28,6 +29,8 @@ class jeu_snake:
 
             # RENDER YOUR GAME HERE
             serpent.move()
+            if serpent.is_alive != True:
+                break
             serpent.draw()
 
             #inputs
@@ -57,6 +60,11 @@ class snake:
     snake_body = []
 
     def __init__(self, speed, starting_size, starting_position: pygame.Vector2, screen: pygame.surface) -> None:
+        #sounds
+        pygame.mixer.init()
+        self.snake_eat = pygame.mixer.Sound("sounds/snake-eat.wav")
+        self.snake_die = pygame.mixer.Sound("sounds/snake-death.wav")
+
         self.speed = speed
         self.size = starting_size
         self.pos = starting_position
@@ -70,7 +78,6 @@ class snake:
         for elt in self.snake_body:
             if pygame.Rect.colliderect(elt, pygame.rect.Rect([random_pos, (tile_size -2, tile_size - 2)])):
                 pos_incorrect = True
-                print("fruit pos incorrect, at : ", random_pos, "with : ", elt)
         
         if pos_incorrect == True:
             self.new_fruit()
@@ -83,7 +90,9 @@ class snake:
         self.fruit.draw()
     
     def grow(self):
+        self.snake_eat.play()
         self.size += 1
+        self.speed += 0.1
 
     def shiftBody(self):
         new_snake_list = []
@@ -96,7 +105,6 @@ class snake:
         self.snake_body = new_snake_list
 
     def move(self):
-        
         #move d'une case toute les 300 ms/speed
         time_now = pygame.time.get_ticks()
         if time_now - self.time > 300/self.speed:
@@ -126,19 +134,24 @@ class snake:
             elif self.direction == 'right':
                 self.pos.x += tile_size
 
-            #collions
-            if self.pos == self.fruit.pos :
-                self.new_fruit()
-                self.grow()
+            self.shiftBody()
 
             if (self.pos.y < 0) or (self.pos.y > (self.screen.get_height() - tile_size)) or (self.pos.x < 0) or (self.pos.x > (self.screen.get_height() - tile_size)):
                 self.die()
             
-            self.shiftBody()
+            
+
+            #collions
+            if pygame.Rect.colliderect(self.snake_body[0], self.fruit.fruit_rect):
+                self.new_fruit()
+                self.grow()            
 
     def die(self):
-        print("Game Over")
         self.is_alive = False
+        channel = self.snake_die.play()
+        while channel.get_busy():
+            pygame.time.wait(100)
+        print("die")
 
 class fruit:
     def __init__(self, pos: pygame.Vector2, screen : pygame.surface) -> None:
@@ -148,11 +161,7 @@ class fruit:
     
     def draw(self):
         self.fruit_rect = pygame.rect.Rect([self.pos, (tile_size -2, tile_size - 2)])
-        pygame.draw.rect(self.screen, 'yellow', self.fruit_rect)
-
-
-        
-
-    
+        pygame.draw.rect(self.screen, 'red', self.fruit_rect)
+      
 
 jeu_snake(window_size)
