@@ -2,7 +2,7 @@ import pygame
 import random
 
 #setup
-window_size = 1000
+window_size = 300
 tile_size = 50
 tile_range = (tile_size // 2, window_size - tile_size //2, tile_size)
 
@@ -33,13 +33,13 @@ class jeu_snake:
             #inputs
             keys = pygame.key.get_pressed()
             if keys[pygame.K_z]:
-                serpent.direction = 'up'
+                serpent.direction_pressed = 'up'
             elif keys[pygame.K_s]:
-                serpent.direction = 'down'
+                serpent.direction_pressed = 'down'
             elif keys[pygame.K_q]:
-                serpent.direction = 'left'
+                serpent.direction_pressed = 'left'
             elif keys[pygame.K_d]:
-                serpent.direction = 'right'
+                serpent.direction_pressed = 'right'
 
 
 
@@ -51,6 +51,7 @@ class jeu_snake:
 
 class snake:
     direction = 'up'
+    direction_pressed = 'left'
     time = 0
     is_alive = True
     snake_body = []
@@ -60,19 +61,39 @@ class snake:
         self.size = starting_size
         self.pos = starting_position
         self.screen = screen
+        self.snake_body.append(pygame.rect.Rect([self.pos, (tile_size -2, tile_size - 2)]))
         self.new_fruit()
-
-    def grow(self):
-        self.size += 1
 
     def new_fruit(self):
         random_pos = pygame.Vector2(random.randrange(0,self.screen.get_width(),tile_size), random.randrange(0,self.screen.get_height(),tile_size))
-        self.fruit = fruit(random_pos , self.screen)
+        pos_incorrect = False
+        for elt in self.snake_body:
+            if pygame.Rect.colliderect(elt, pygame.rect.Rect([random_pos, (tile_size -2, tile_size - 2)])):
+                pos_incorrect = True
+                print("fruit pos incorrect, at : ", random_pos, "with : ", elt)
+        
+        if pos_incorrect == True:
+            self.new_fruit()
+        else:
+            self.fruit = fruit(random_pos , self.screen)
 
     def draw(self):
-        self.snake_rect = pygame.rect.Rect([self.pos, (tile_size -2, tile_size - 2)])
-        pygame.draw.rect(self.screen, 'green', self.snake_rect)
+        for elt in self.snake_body:
+            pygame.draw.rect(self.screen, 'green', elt)
         self.fruit.draw()
+    
+    def grow(self):
+        self.size += 1
+
+    def shiftBody(self):
+        new_snake_list = []
+        new_snake_list.append(pygame.rect.Rect([self.pos, (tile_size -2, tile_size - 2)]))
+        for i in range(1, self.size):
+            new_snake_list.append(self.snake_body[i-1])
+        for i in range(1, self.size):
+            if new_snake_list[0] ==  new_snake_list[i]:
+                self.die()
+        self.snake_body = new_snake_list
 
     def move(self):
         
@@ -80,6 +101,22 @@ class snake:
         time_now = pygame.time.get_ticks()
         if time_now - self.time > 300/self.speed:
             self.time = time_now
+
+            #check si l'inupt est correct
+            if self.direction_pressed == 'up':
+                if self.direction != 'down':
+                    self.direction = 'up'
+            elif self.direction_pressed == 'down':
+                if self.direction != 'up':
+                    self.direction = 'down'
+            elif self.direction_pressed == 'left':
+                if self.direction != 'right':
+                    self.direction = 'left'
+            elif self.direction_pressed == 'right':
+                if self.direction != 'left':
+                    self.direction = 'right'
+
+            #move
             if self.direction == 'up':
                 self.pos.y -= tile_size
             elif self.direction == 'down':
@@ -89,14 +126,15 @@ class snake:
             elif self.direction == 'right':
                 self.pos.x += tile_size
 
-        #meurt si depasse limites ecran
-        if (self.pos.y < 0) or (self.pos.y > (self.screen.get_height() - tile_size)) or (self.pos.x < 0) or (self.pos.x > (self.screen.get_height() - tile_size)):
-            self.die()
+            #collions
+            if self.pos == self.fruit.pos :
+                self.new_fruit()
+                self.grow()
 
-        #verifie si fruit recupéré
-        if self.pos == self.fruit.pos :
-            self.new_fruit()
-            self.grow()
+            if (self.pos.y < 0) or (self.pos.y > (self.screen.get_height() - tile_size)) or (self.pos.x < 0) or (self.pos.x > (self.screen.get_height() - tile_size)):
+                self.die()
+            
+            self.shiftBody()
 
     def die(self):
         print("Game Over")
@@ -117,4 +155,4 @@ class fruit:
 
     
 
-jeu_snake(1000)
+jeu_snake(window_size)
