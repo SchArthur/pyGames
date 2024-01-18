@@ -2,7 +2,7 @@ import pygame
 import random
 
 #setup
-window_size = 1000
+window_size = 900
 tile_size = 50
 
 class jeu_snake:
