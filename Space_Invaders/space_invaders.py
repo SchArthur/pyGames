@@ -162,6 +162,7 @@ class player:
         self.pos.y = -80
 
 class alien:
+    
     go_right = True
     rect_alien = pygame.rect.Rect(0,0,0,0)
     step = 25
@@ -169,6 +170,7 @@ class alien:
     def __init__(self,spawn_position:pygame.Vector2, ecran) -> None:
         self.pos = spawn_position
         self.screen = ecran
+        self.texture = pygame.image.load("sprites/alien_medium_1.png").convert_alpha()
         self.is_alive = True
 
     def roam(self):
@@ -179,7 +181,8 @@ class alien:
 
     def draw(self):
         self.rect_alien = pygame.rect.Rect(self.pos.x, self.pos.y, self.size, self.size)
-        pygame.draw.rect(self.screen, enemy_color, self.rect_alien)
+        self.screen.blit(pygame.transform.scale(self.texture,(self.size,self.size/2)), self.rect_alien)
+        # pygame.draw.rect(self.screen, enemy_color, self.rect_alien)
 
 class missile:
     size = 7
