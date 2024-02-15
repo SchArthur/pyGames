@@ -1,43 +1,52 @@
 # Example file showing a circle moving on screen
 import pygame
+import objects
+
+# settings
+paddle_offset = 50
 
 # pygame setup
-pygame.init()
-screen = pygame.display.set_mode((1280, 720))
-clock = pygame.time.Clock()
-running = True
-dt = 0
+class game():
+    def __init__(self) -> None:
+        pass
+        pygame.init()
+        self.screen = pygame.display.set_mode((1280, 720))
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.dt = 0
+        self.player_left = objects.newPaddle(self.screen, paddle_offset, pygame.K_z, pygame.K_s)
+        self.player_right = objects.newPaddle(self.screen, self.screen.get_width() - paddle_offset, pygame.K_UP, pygame.K_DOWN)
+        self.player_list = []
+        self.player_list.append(self.player_left)
+        self.player_list.append(self.player_right)
 
-player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
+        self.ball = objects.newBall(self.screen)
 
-while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        self.run()
 
-    # fill the screen with a color to wipe away anything from last frame
-    screen.fill("purple")
+    def run(self):
+        while self.running:
+            # poll for events
+            # pygame.QUIT event means the user clicked X to close your window
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
 
-    pygame.draw.circle(screen, "red", player_pos, 40)
+            # fill the screen with a color to wipe away anything from last frame
+            self.screen.fill("#C0C0C0")
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]:
-        player_pos.y -= 300 * dt
-    if keys[pygame.K_s]:
-        player_pos.y += 300 * dt
-    if keys[pygame.K_a]:
-        player_pos.x -= 300 * dt
-    if keys[pygame.K_d]:
-        player_pos.x += 300 * dt
+            for player in self.player_list:
+                player.update(self.dt)
+            self.ball.update(self.dt, self.player_list)
 
-    # flip() the display to put your work on screen
-    pygame.display.flip()
+            # flip() the display to put your work on screen
+            pygame.display.flip()
 
-    # limits FPS to 60
-    # dt is delta time in seconds since last frame, used for framerate-
-    # independent physics.
-    dt = clock.tick(60) / 1000
+            # limits FPS to 60
+            # dt is delta time in seconds since last frame, used for framerate-
+            # independent physics.
+            self.dt = self.clock.tick(60) / 1000
 
-pygame.quit()
+        pygame.quit()
+
+newGame = game()
