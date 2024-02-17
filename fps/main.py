@@ -3,6 +3,7 @@ import pygame
 import map
 import player
 import math
+up_angle = pygame.Vector2(0,-1)
 # settings
 paddle_offset = 50
 
@@ -38,7 +39,7 @@ class game():
             self.player.draw(self.minimap)
 
             # self.castRay(self.player.direction)
-            self.castRay(35)
+            self.castRay(self.player.angle)
 
             self.screen.blit(self.minimap, minimap_coords)
             
@@ -54,20 +55,63 @@ class game():
         pygame.quit()
 
     def castRay(self, angle):
-        in_cell_x = (self.player.pos.x % self.map.cell_size)
-        in_cell_y = (self.player.pos.y % self.map.cell_size)
+        cellsize = self.map.cell_size
+        in_cell_x = (self.player.pos.x % cellsize)
+        in_cell_y = (self.player.pos.y % cellsize)
         position_in_cell = pygame.Vector2(in_cell_x,in_cell_y)
-        if (315 <= angle) or (angle < 45) :
-            # si HAUT
-            print("HAUT")
-        elif 45 <= angle < 135:
-            # si DROITE
-            print("DROITE")
-        elif 135 <= angle < 225:
-            # si BAS
-            print("BAS")
-        elif 225 <= angle < 315:
-            # si GAUCHE
-            print("GAUCHE")
+        for i in range(5):
+            point = self.hor_check(angle,position_in_cell, i)
+            pygame.draw.circle(self.minimap, 'yellow', point, 2)
+
+    def ver_check(self, angle, pos_in_cell : pygame.Vector2, steps):
+        calc_angle = rotateAngle(angle, -90)
+        if calc_angle != 0:
+            if angle < 180 :
+                # DROITE
+                x_nearest = self.map.cell_size - pos_in_cell.x
+                x_step = self.map.cell_size
+            else :
+                # GAUCHE
+                x_nearest = -pos_in_cell.x
+                x_step = -self.map.cell_size
+            y_nearest = x_nearest * math.tan(calc_angle * math.pi/180)
+            nearest_point = pygame.Vector2(x_nearest, y_nearest)
+            pygame.draw.circle(self.minimap, 'yellow', nearest_point + self.player.pos, 2)
+            y_step = x_step * math.tan(calc_angle * math.pi/180)
+            point = nearest_point
+            for i in range(steps):
+                point += pygame.Vector2(x_step, y_step)
+                pygame.draw.circle(self.minimap, 'yellow', point + self.player.pos, 2)
+
+    def hor_check(self, angle, pos_in_cell : pygame.Vector2, steps):
+        calc_angle = rotateAngle(angle, -90)
+        if calc_angle != 0:
+            if calc_angle < 180 :
+                # DOWN
+                y_nearest = self.map.cell_size - pos_in_cell.y
+                y_step = self.map.cell_size
+            else :
+                # UP
+                y_nearest = -pos_in_cell.y
+                y_step = -self.map.cell_size
+            x_nearest = y_nearest / math.tan(calc_angle * math.pi/180)
+            nearest_point = pygame.Vector2(x_nearest, y_nearest)
+            x_step = y_step / math.tan(calc_angle * math.pi/180)
+            point = nearest_point
+            for i in range(steps):
+                point += pygame.Vector2(x_step, y_step)
+            return point + self.player.pos
+        return self.player.pos.copy()
+
+def rotateAngle(angle, rotation):
+    new_angle = angle
+    new_angle += rotation
+    while new_angle >= 360:
+        new_angle -=360
+    while new_angle < 0:
+        new_angle +=360
+
+    return new_angle
+
 
 newGame = game()

@@ -1,12 +1,14 @@
 import pygame
 
+up_angle = pygame.Vector2(0,-1)
+
 class newPlayer():
     def __init__(self, pos) -> None:
         self.pos = pygame.Vector2(pos)
-        self.direction = pygame.Vector2(0,-1)
+        self.direction = up_angle
         self.angle = 0
         self.speed = 50
-        self.turnspeed = 1.5
+        self.turnspeed = 100
 
     def draw(self, surface):
         pygame.draw.circle(surface, 'red', self.pos, 3)
@@ -19,11 +21,14 @@ class newPlayer():
         elif keys[pygame.K_s]:
             self.pos -= self.direction * dt * self.speed
         if keys[pygame.K_q]:
-            self.direction = self.direction.rotate(-self.turnspeed)
+            self.angle -= self.turnspeed * dt
         elif keys[pygame.K_d]:
-            self.direction = self.direction.rotate(self.turnspeed)
+            self.angle += self.turnspeed * dt
 
-def fix_angle(angle) -> int:
+        self.angle = fix_angle(self.angle)
+        self.direction = up_angle.rotate(self.angle)
+
+def fix_angle(angle) -> float:
     new_angle = angle
     while new_angle >= 360:
         new_angle -=360
