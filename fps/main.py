@@ -6,6 +6,7 @@ import math
 up_angle = pygame.Vector2(0,-1)
 # settings
 paddle_offset = 50
+fov = 90
 
 # pygame setup
 class game():
@@ -17,7 +18,7 @@ class game():
         self.running = True
         self.dt = 0
         self.map = map.newMap('map_1.ini', 500)
-        self.player = player.newPlayer((11,11))
+        self.player = player.newPlayer((145,145))
 
         self.run()
 
@@ -38,7 +39,6 @@ class game():
             self.player.move(self.dt)
             self.player.draw(self.minimap)
 
-            # self.castRay(self.player.direction)
             self.castRay(self.player.angle)
 
             self.screen.blit(self.minimap, minimap_coords)
@@ -59,11 +59,28 @@ class game():
         in_cell_x = (self.player.pos.x % cellsize)
         in_cell_y = (self.player.pos.y % cellsize)
         position_in_cell = pygame.Vector2(in_cell_x,in_cell_y)
-        for i in range(5):
-            point = self.hor_check(angle,position_in_cell, i)
-            pygame.draw.circle(self.minimap, 'yellow', point, 2)
 
-    def ver_check(self, angle, pos_in_cell : pygame.Vector2, steps):
+        v_hit = self.ver_check(angle, position_in_cell)
+        v = 1
+        while not self.map.isWall( pygame.Vector2(v_hit.x / self.map.cell_size, v_hit.y / self.map.cell_size)):
+            v_hit = self.ver_check(angle, position_in_cell, v)
+            v += 1
+
+        h_hit = self.hor_check(angle, position_in_cell)
+        h = 1
+        while not self.map.isWall( pygame.Vector2(h_hit.x / self.map.cell_size, h_hit.y / self.map.cell_size)):
+            h_hit = self.hor_check(angle, position_in_cell, h)
+            h+= 1
+        
+        distance_h = (self.player.pos - h_hit).length()
+        distance_v = (self.player.pos - v_hit).length()
+        if distance_h < distance_v:
+            hit = h_hit
+        else :
+            hit = v_hit
+        pygame.draw.line(self.minimap, 'purple',self.player.pos , hit, 2)
+
+    def ver_check(self, angle, pos_in_cell : pygame.Vector2, steps = 0):
         calc_angle = rotateAngle(angle, -90)
         if calc_angle != 0:
             if angle < 180 :
@@ -76,14 +93,14 @@ class game():
                 x_step = -self.map.cell_size
             y_nearest = x_nearest * math.tan(calc_angle * math.pi/180)
             nearest_point = pygame.Vector2(x_nearest, y_nearest)
-            pygame.draw.circle(self.minimap, 'yellow', nearest_point + self.player.pos, 2)
             y_step = x_step * math.tan(calc_angle * math.pi/180)
             point = nearest_point
             for i in range(steps):
                 point += pygame.Vector2(x_step, y_step)
-                pygame.draw.circle(self.minimap, 'yellow', point + self.player.pos, 2)
+            return point + self.player.pos
+        return self.player.pos.copy()
 
-    def hor_check(self, angle, pos_in_cell : pygame.Vector2, steps):
+    def hor_check(self, angle, pos_in_cell : pygame.Vector2, steps = 0):
         calc_angle = rotateAngle(angle, -90)
         if calc_angle != 0:
             if calc_angle < 180 :

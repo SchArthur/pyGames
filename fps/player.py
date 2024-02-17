@@ -6,7 +6,7 @@ class newPlayer():
     def __init__(self, pos) -> None:
         self.pos = pygame.Vector2(pos)
         self.direction = up_angle
-        self.angle = 0
+        self.angle = 145
         self.speed = 50
         self.turnspeed = 100
 
