@@ -13,13 +13,13 @@ fullscreen = False
 # pygame setup
 class game():
     def __init__(self) -> None:
-        pass
+        self.screen = pygame.surface.Surface((320,200))
         pygame.init()
         if fullscreen:
-            self.screen = pygame.display.set_mode((1280, 720))
+            self.windows = pygame.display.set_mode((1280, 720))
         else:
             fullscreen_size = pygame.display.get_desktop_sizes()[0]
-            self.screen = pygame.display.set_mode(fullscreen_size)
+            self.windows = pygame.display.set_mode(fullscreen_size)
             pygame.display.toggle_fullscreen()
         self.clock = pygame.time.Clock()
         self.running = True
@@ -41,7 +41,6 @@ class game():
             self.screen.fill("#C0C0C0")
 
             self.minimap = self.map.drawMiniMap()
-            minimap_coords = (0,self.screen.get_height() - self.minimap.get_height())
 
             self.running = not self.player.input(self.dt)
             self.player.draw(self.minimap)
@@ -55,9 +54,12 @@ class game():
                 wall_rect = pygame.rect.Rect(i,self.screen.get_height()/2 - wall_height/2,1,wall_height)
                 pygame.draw.rect(self.screen,hit[1], wall_rect)
 
-            self.screen.blit(self.minimap, minimap_coords)
             
+            self.game_projection = pygame.transform.scale(self.screen, (self.windows.get_width(), self.windows.get_height()))
+            self.windows.blit(self.game_projection, (0,0))
 
+            minimap_coords = (0,self.windows.get_height() - self.minimap.get_height())
+            self.windows.blit(self.minimap, minimap_coords)
             # flip() the display to put your work on screen
             pygame.display.flip()
 
