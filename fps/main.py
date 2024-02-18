@@ -38,7 +38,10 @@ class game():
                     self.running = False
 
             # fill the screen with a color to wipe away anything from last frame
-            self.screen.fill("#C0C0C0")
+            top_rect = pygame.rect.Rect((0,0), (self.screen.get_width(),self.screen.get_height()/2))
+            bot_rect = pygame.rect.Rect((0,self.screen.get_height()/2), (self.screen.get_width(),self.screen.get_height()/2))
+            self.screen.fill("#909090", top_rect)
+            self.screen.fill('#C0C0C0', bot_rect)
 
             self.minimap = self.map.drawMiniMap()
 
@@ -50,7 +53,7 @@ class game():
             for i in range(pixel_per_row):
                 hit = self.castRay(player.fix_angle(self.player.angle + (i*ray_delta)-(fov/2)))
                 distance_hit = hit[0]
-                wall_height = self.screen.get_height()/((distance_hit*0.01)+0.01)
+                wall_height = self.screen.get_height()/((distance_hit)/2)
                 wall_rect = pygame.rect.Rect(i,self.screen.get_height()/2 - wall_height/2,1,wall_height)
                 pygame.draw.rect(self.screen,hit[1], wall_rect)
 
@@ -100,7 +103,7 @@ class game():
         else :
             hit = v_hit
             wall_color = '#FFBB33'
-        distance_hit = ((self.player.pos - hit).length())*5
+        distance_hit = ((self.player.pos - hit).length())
 
         # DRAW RAY
         pygame.draw.line(self.minimap, 'purple',self.player.pos, hit)

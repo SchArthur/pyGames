@@ -7,7 +7,7 @@ class newPlayer():
         self.pos = pygame.Vector2(pos)
         self.direction = up_angle
         self.angle = 145
-        self.speed = 50
+        self.speed = 10
         self.turnspeed = 100
 
     def draw(self, surface):
