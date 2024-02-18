@@ -11,10 +11,11 @@ class newPlayer():
         self.turnspeed = 100
 
     def draw(self, surface):
-        pygame.draw.circle(surface, 'red', self.pos, 3)
+        pygame.draw.circle(surface, 'red', self.pos, 2)
         pygame.draw.line(surface, 'blue', self.pos, self.direction*10 + self.pos)
 
-    def move(self, dt):
+    def input(self, dt) -> bool:
+        quit = False
         keys = pygame.key.get_pressed()
         if keys[pygame.K_z]:
             self.pos += self.direction * dt * self.speed
@@ -24,10 +25,14 @@ class newPlayer():
             self.angle -= self.turnspeed * dt
         elif keys[pygame.K_d]:
             self.angle += self.turnspeed * dt
+        if keys[pygame.K_ESCAPE]:
+            quit = True
 
         self.angle = fix_angle(self.angle)
         self.direction = up_angle.rotate(self.angle)
 
+        return quit
+    
 def fix_angle(angle) -> float:
     new_angle = angle
     while new_angle >= 360:

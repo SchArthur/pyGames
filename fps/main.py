@@ -6,18 +6,25 @@ import math
 up_angle = pygame.Vector2(0,-1)
 # settings
 paddle_offset = 50
-fov = 90
+fov = 120
+
+fullscreen = False
 
 # pygame setup
 class game():
     def __init__(self) -> None:
         pass
         pygame.init()
-        self.screen = pygame.display.set_mode((1280, 720))
+        if fullscreen:
+            self.screen = pygame.display.set_mode((1280, 720))
+        else:
+            fullscreen_size = pygame.display.get_desktop_sizes()[0]
+            self.screen = pygame.display.set_mode(fullscreen_size)
+            pygame.display.toggle_fullscreen()
         self.clock = pygame.time.Clock()
         self.running = True
         self.dt = 0
-        self.map = map.newMap('map_1.ini', 500)
+        self.map = map.newMap('map_1.ini', 200)
         self.player = player.newPlayer((145,145))
 
         self.run()
@@ -36,10 +43,17 @@ class game():
             self.minimap = self.map.drawMiniMap()
             minimap_coords = (0,self.screen.get_height() - self.minimap.get_height())
 
-            self.player.move(self.dt)
+            self.running = not self.player.input(self.dt)
             self.player.draw(self.minimap)
 
-            self.castRay(self.player.angle)
+            ray_delta = fov/self.screen.get_width()
+            pixel_per_row = self.screen.get_width()
+            for i in range(pixel_per_row):
+                hit = self.castRay(player.fix_angle(self.player.angle + (i*ray_delta)-(fov/2)))
+                distance_hit = hit[0]
+                wall_height = self.screen.get_height()/((distance_hit*0.01)+0.01)
+                wall_rect = pygame.rect.Rect(i,self.screen.get_height()/2 - wall_height/2,1,wall_height)
+                pygame.draw.rect(self.screen,hit[1], wall_rect)
 
             self.screen.blit(self.minimap, minimap_coords)
             
@@ -65,20 +79,32 @@ class game():
         while not self.map.isWall( pygame.Vector2(v_hit.x / self.map.cell_size, v_hit.y / self.map.cell_size)):
             v_hit = self.ver_check(angle, position_in_cell, v)
             v += 1
+            if v>100:
+                break
 
         h_hit = self.hor_check(angle, position_in_cell)
         h = 1
         while not self.map.isWall( pygame.Vector2(h_hit.x / self.map.cell_size, h_hit.y / self.map.cell_size)):
             h_hit = self.hor_check(angle, position_in_cell, h)
             h+= 1
+            if h>100:
+                break
         
         distance_h = (self.player.pos - h_hit).length()
         distance_v = (self.player.pos - v_hit).length()
         if distance_h < distance_v:
             hit = h_hit
+            wall_color = '#FFC857'
         else :
             hit = v_hit
-        pygame.draw.line(self.minimap, 'purple',self.player.pos , hit, 2)
+            wall_color = '#FFBB33'
+        distance_hit = ((self.player.pos - hit).length())*5
+
+        # DRAW RAY
+        pygame.draw.line(self.minimap, 'purple',self.player.pos, hit)
+
+        return (distance_hit, wall_color)
+
 
     def ver_check(self, angle, pos_in_cell : pygame.Vector2, steps = 0):
         calc_angle = rotateAngle(angle, -90)
